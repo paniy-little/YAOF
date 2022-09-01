@@ -220,8 +220,13 @@ rm -rf ./feeds/packages/net/miniupnpd
 #git clone -b main --depth 1 https://github.com/msylgj/miniupnpd.git feeds/packages/net/miniupnpd
 svn export https://github.com/openwrt/packages/trunk/net/miniupnpd feeds/packages/net/miniupnpd
 pushd feeds/packages
-wget -qO - https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
-#wget -qO - https://github.com/x-wrt/packages/commit/40163cf.patch | patch -Rp1
+wget -qO- https://github.com/openwrt/packages/commit/785bbcb.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/d811cb4.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/9a2da85.patch | patch -p1
+wget -qO- https://github.com/openwrt/packages/commit/71dc090.patch | patch -p1
+popd
+pushd feeds/luci
+wget -qO- https://github.com/openwrt/luci/commit/0b5fb915.patch | patch -p1
 popd
 rm -rf ./feeds/luci/applications/luci-app-upnp
 git clone -b main --depth 1 https://github.com/msylgj/luci-app-upnp feeds/luci/applications/luci-app-upnp
