@@ -116,8 +116,8 @@ wget -P target/linux/rockchip/ https://github.com/openwrt/openwrt/raw/openwrt-22
 rm -rf ./target/linux/rockchip/patches-5.10/002-net-usb-r8152-add-LED-configuration-from-OF.patch
 rm -rf ./target/linux/rockchip/patches-5.10/003-dt-bindings-net-add-RTL8152-binding-documentation.patch
 
-mkdir -p target/linux/rockchip/files-5.10/arch/arm64/boot/dts/rockchip
-cp -rf ../PATCH/dts/* ./target/linux/rockchip/files-5.10/arch/arm64/boot/dts/rockchip/
+mkdir -p target/linux/rockchip/files-5.10
+cp -rf ../PATCH/files-5.10 ./target/linux/rockchip/
 
 rm -rf ./package/boot/uboot-rockchip
 svn export https://github.com/coolsnowwolf/lede/trunk/package/boot/uboot-rockchip package/boot/uboot-rockchip
