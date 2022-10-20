@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# 内核加解密组件
-echo '
-CONFIG_CRYPTO_AES_NI_INTEL=y
-' >>./target/linux/x86/config-5.10
+rm -rf ./package/kernel/linux/modules/video.mk
+rm -rf ./target/linux/x86/64/config-5.10
+wget -P package/kernel/linux/modules/ https://github.com/coolsnowwolf/lede/raw/master/package/kernel/linux/modules/video.mk
+sed -i 's,CONFIG_DRM_I915_CAPTURE_ERROR ,CONFIG_DRM_I915_CAPTURE_ERROR=n ,g' package/kernel/linux/modules/video.mk
+wget -P target/linux/x86/64/ https://github.com/coolsnowwolf/lede/raw/master/target/linux/x86/64/config-5.10
 
 # UKSM
 #echo '
