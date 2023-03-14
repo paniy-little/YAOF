@@ -12,6 +12,14 @@ jobs:
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        swap-size-mb: 2048
+        root-reserve-mb: 2048
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
     - name: Checkout
       uses: actions/checkout@main
     - name: Show system
@@ -87,7 +95,7 @@ jobs:
       run: |
         cd openwrt
         #echo | make kernel_oldconfig -j$(($(nproc) + 1)) 
-        make -j$(($(nproc) + 1)) V=s || make -i -j$(($(nproc) + 1))
+        make -j$(($(nproc) + 1)) || make -j$(($(nproc) + 1)) V=s
         echo $?
     - name: If Error
       if: steps.compileopenwrt.outcome == 'failure'
