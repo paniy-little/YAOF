@@ -5,6 +5,9 @@ sed -i 's,iptables-nft,iptables-legacy,g' ./package/new/luci-app-passwall/Makefi
 sed -i 's,iptables-nft +kmod-nft-fullcone,iptables-mod-fullconenat,g' ./package/new/addition-trans-zh/Makefile
 rm -rf ./feeds/packages/net/miniupnpd
 cp -rf ../lede_pkg/net/miniupnpd ./feeds/packages/net/miniupnpd
+pushd feeds/packages
+wget -qO- https://github.com/coolsnowwolf/packages/commit/b46003e0.patch | patch -p1
+popd
 rm -rf ./feeds/luci/applications/luci-app-upnp
 cp -rf ../lede_luci/applications/luci-app-upnp ./feeds/luci/applications/luci-app-upnp
 sed -i '/firewall/d' ./.config
