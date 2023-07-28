@@ -441,6 +441,13 @@ rm -rf ./feeds/packages/net/zerotier
 cp -rf ../immortalwrt_pkg/net/zerotier ./feeds/packages/net/zerotier
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
+# sirpdboy
+git clone -b master --depth 1 https://github.com/sirpdboy/luci-app-autotimeset package/sirpdboy/luci-app-autotimeset
+sed -i 's,"control","system",g' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
+sed -i '/firstchild/d' package/sirpdboy/luci-app-autotimeset/luasrc/controller/autotimeset.lua
+sed -i 's,control,system,g' package/sirpdboy/luci-app-autotimeset/luasrc/view/autotimeset/log.htm
+git clone -b main --depth 1 https://github.com/sirpdboy/luci-app-partexp package/sirpdboy/luci-app-partexp
+rm -rf ./package/sirpdboy/luci-app-partexp/po/zh_Hans
 # 翻译及部分功能优化
 cp -rf ../OpenWrt-Add/addition-trans-zh ./package/new/addition-trans-zh
 sed -i 's,iptables-mod-fullconenat,iptables-nft +kmod-nft-fullcone,g' package/new/addition-trans-zh/Makefile
