@@ -47,6 +47,8 @@ cp -rf ../immortalwrt/package/libs/mbedtls ./package/libs/mbedtls
 #cp -rf ../immortalwrt_21/package/libs/openssl ./package/libs/openssl
 # fstool
 wget -qO - https://github.com/coolsnowwolf/lede/commit/8a4db76.patch | patch -p1
+# wg
+wget -qO - https://raw.githubusercontent.com/gl-inet/gl-infra-builder/main/patches-23.05/2000-kernel-Add-hotplug-support-for-wireguard.patch | patch -p1
 
 ### Fullcone-NAT 部分 ###
 # Patch Kernel 以解决 FullCone 冲突
