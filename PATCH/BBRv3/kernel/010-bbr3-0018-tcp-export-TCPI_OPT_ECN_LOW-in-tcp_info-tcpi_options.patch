@@ -1,7 +1,7 @@
-From 9e4a6a6a35617746e9e88d2212abc3403246245a Mon Sep 17 00:00:00 2001
+From 0be8827d9af6570c076d797d91614f51062c9503 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sun, 23 Jul 2023 23:25:34 -0400
-Subject: [PATCH 21/21] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
+Subject: [PATCH 18/18] tcp: export TCPI_OPT_ECN_LOW in tcp_info tcpi_options
  field
 
 Analogous to other important ECN information, export TCPI_OPT_ECN_LOW
@@ -9,11 +9,14 @@ in tcp_info tcpi_options field.
 
 Signed-off-by: Neal Cardwell <ncardwell@google.com>
 Change-Id: I08d8d8c7e8780e6e37df54038ee50301ac5a0320
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/uapi/linux/tcp.h | 1 +
  net/ipv4/tcp.c           | 2 ++
  2 files changed, 3 insertions(+)
 
+diff --git a/include/uapi/linux/tcp.h b/include/uapi/linux/tcp.h
+index 8fc09e8638b3..ed53f2535ac6 100644
 --- a/include/uapi/linux/tcp.h
 +++ b/include/uapi/linux/tcp.h
 @@ -170,6 +170,7 @@ enum tcp_fastopen_client_fail {
@@ -24,9 +27,11 @@ Change-Id: I08d8d8c7e8780e6e37df54038ee50301ac5a0320
  
  /*
   * Sender's congestion state indicating normal or abnormal situations
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 3acfcb9a727c..786a165dae37 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3783,6 +3783,8 @@ void tcp_get_info(struct sock *sk, struc
+@@ -3885,6 +3885,8 @@ void tcp_get_info(struct sock *sk, struct tcp_info *info)
  		info->tcpi_options |= TCPI_OPT_ECN;
  	if (tp->ecn_flags & TCP_ECN_SEEN)
  		info->tcpi_options |= TCPI_OPT_ECN_SEEN;
@@ -35,3 +40,6 @@ Change-Id: I08d8d8c7e8780e6e37df54038ee50301ac5a0320
  	if (tp->syn_data_acked)
  		info->tcpi_options |= TCPI_OPT_SYN_DATA;
  
+-- 
+2.39.2
+

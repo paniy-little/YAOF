@@ -1,7 +1,7 @@
-From c54e85537abd076d1c87a49323a65a1c2980748d Mon Sep 17 00:00:00 2001
+From d477873792195767ea7511cbd8282f64148f0692 Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Fri, 27 Sep 2019 17:10:26 -0400
-Subject: [PATCH 10/21] net-tcp: re-generalize TSO sizing in TCP CC module API
+Subject: [PATCH 10/18] net-tcp: re-generalize TSO sizing in TCP CC module API
 
 Reorganize the API for CC modules so that the CC module once again
 gets complete control of the TSO sizing decision. This is how the API
@@ -18,27 +18,33 @@ contrast, CUBIC/Reno/DCTCP see no loss or ECN, so they grow a very
 large cwnd, and thus large pacing rate and large TSO burst size.
 
 Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
- include/net/tcp.h     |  3 +++
+ include/net/tcp.h     |  4 ++--
  net/ipv4/tcp_bbr.c    | 37 ++++++++++++++++++++++++++-----------
  net/ipv4/tcp_output.c | 11 +++++------
- 3 files changed, 34 insertions(+), 17 deletions(-)
+ 3 files changed, 33 insertions(+), 19 deletions(-)
 
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index 674863ff843a..9501c1bf5879 100644
 --- a/include/net/tcp.h
 +++ b/include/net/tcp.h
-@@ -1078,6 +1078,9 @@ struct tcp_congestion_ops {
- 	/* override sysctl_tcp_min_tso_segs */
- 	u32 (*min_tso_segs)(struct sock *sk);
+@@ -1103,8 +1103,8 @@ struct tcp_congestion_ops {
+ 	/* hook for packet ack accounting (optional) */
+ 	void (*pkts_acked)(struct sock *sk, const struct ack_sample *sample);
  
+-	/* override sysctl_tcp_min_tso_segs */
+-	u32 (*min_tso_segs)(struct sock *sk);
 +	/* pick target number of segments per TSO/GSO skb (optional): */
 +	u32 (*tso_segs)(struct sock *sk, unsigned int mss_now);
-+
+ 
  	/* react to a specific lost skb (optional) */
  	void (*skb_marked_lost)(struct sock *sk, const struct sk_buff *skb);
- 
+diff --git a/net/ipv4/tcp_bbr.c b/net/ipv4/tcp_bbr.c
+index 54eec33c6e1c..f2c6c5d31068 100644
 --- a/net/ipv4/tcp_bbr.c
 +++ b/net/ipv4/tcp_bbr.c
-@@ -298,20 +298,35 @@ static u32 bbr_min_tso_segs(struct sock
+@@ -300,20 +300,35 @@ static u32 bbr_min_tso_segs(struct sock *sk)
  	return sk->sk_pacing_rate < (bbr_min_tso_rate >> 3) ? 1 : 2;
  }
  
@@ -76,7 +82,7 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
 -	 */
 -	bytes = min_t(unsigned long,
 -		      sk->sk_pacing_rate >> READ_ONCE(sk->sk_pacing_shift),
--		      GSO_MAX_SIZE - 1 - MAX_TCP_HEADER);
+-		      GSO_LEGACY_MAX_SIZE - 1 - MAX_TCP_HEADER);
 -	segs = max_t(u32, bytes / tp->mss_cache, bbr_min_tso_segs(sk));
  
 -	return min(segs, 0x7FU);
@@ -84,7 +90,7 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
  }
  
  /* Save "last known good" cwnd so we can restore it after losses or PROBE_RTT */
-@@ -1147,7 +1162,7 @@ static struct tcp_congestion_ops tcp_bbr
+@@ -1149,7 +1164,7 @@ static struct tcp_congestion_ops tcp_bbr_cong_ops __read_mostly = {
  	.undo_cwnd	= bbr_undo_cwnd,
  	.cwnd_event	= bbr_cwnd_event,
  	.ssthresh	= bbr_ssthresh,
@@ -93,9 +99,11 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
  	.get_info	= bbr_get_info,
  	.set_state	= bbr_set_state,
  };
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index 320f16e9e89b..6065087db045 100644
 --- a/net/ipv4/tcp_output.c
 +++ b/net/ipv4/tcp_output.c
-@@ -2011,13 +2011,12 @@ static u32 tcp_tso_autosize(const struct
+@@ -2021,13 +2021,12 @@ static u32 tcp_tso_autosize(const struct sock *sk, unsigned int mss_now,
  static u32 tcp_tso_segs(struct sock *sk, unsigned int mss_now)
  {
  	const struct tcp_congestion_ops *ca_ops = inet_csk(sk)->icsk_ca_ops;
@@ -114,3 +122,6 @@ Change-Id: Ic8ccfdbe4010ee8d4bf6a6334c48a2fceb2171ea
  	return min_t(u32, tso_segs, sk->sk_gso_max_segs);
  }
  
+-- 
+2.39.2
+

@@ -1,7 +1,7 @@
-From 8c21eb6f85f3a59479338943f1b6a0a60898329a Mon Sep 17 00:00:00 2001
+From 974b44c70ddf667d03afc62bcbc973e2e2a76a1a Mon Sep 17 00:00:00 2001
 From: Neal Cardwell <ncardwell@google.com>
 Date: Sat, 16 Nov 2019 13:16:25 -0500
-Subject: [PATCH 11/21] net-tcp: add fast_ack_mode=1: skip rwin check in
+Subject: [PATCH 11/18] net-tcp: add fast_ack_mode=1: skip rwin check in
  tcp_fast_ack_mode__tcp_ack_snd_check()
 
 Add logic for an experimental TCP connection behavior, enabled with
@@ -11,6 +11,7 @@ enabled, the data receiver sends an ACK if the amount of data is >
 RCV.MSS.
 
 Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
+Signed-off-by: Alexandre Frade <kernel@xanmod.org>
 ---
  include/linux/tcp.h  | 3 ++-
  net/ipv4/tcp.c       | 1 +
@@ -18,9 +19,11 @@ Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
  net/ipv4/tcp_input.c | 5 +++--
  4 files changed, 7 insertions(+), 3 deletions(-)
 
+diff --git a/include/linux/tcp.h b/include/linux/tcp.h
+index 9cd289ad3f5b..bb8fa0c9d1d2 100644
 --- a/include/linux/tcp.h
 +++ b/include/linux/tcp.h
-@@ -225,7 +225,8 @@ struct tcp_sock {
+@@ -255,7 +255,8 @@ struct tcp_sock {
  	u8	compressed_ack;
  	u8	dup_ack_counter:2,
  		tlp_retrans:1,	/* TLP is a retransmission */
@@ -30,9 +33,11 @@ Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
  	u32	chrono_start;	/* Start time in jiffies of a TCP chrono */
  	u32	chrono_stat[3];	/* Time in jiffies for chrono_stat stats */
  	u8	chrono_type:2,	/* current chronograph type */
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index fab25d4f3a6f..3acfcb9a727c 100644
 --- a/net/ipv4/tcp.c
 +++ b/net/ipv4/tcp.c
-@@ -3087,6 +3087,7 @@ int tcp_disconnect(struct sock *sk, int
+@@ -3189,6 +3189,7 @@ int tcp_disconnect(struct sock *sk, int flags)
  	tp->rx_opt.dsack = 0;
  	tp->rx_opt.num_sacks = 0;
  	tp->rcv_ooopack = 0;
@@ -40,9 +45,11 @@ Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
  
  
  	/* Clean up fastopen related fields */
+diff --git a/net/ipv4/tcp_cong.c b/net/ipv4/tcp_cong.c
+index d3cae40749e8..0f268f2ff2e9 100644
 --- a/net/ipv4/tcp_cong.c
 +++ b/net/ipv4/tcp_cong.c
-@@ -179,6 +179,7 @@ void tcp_init_congestion_control(struct
+@@ -189,6 +189,7 @@ void tcp_init_congestion_control(struct sock *sk)
  	struct inet_connection_sock *icsk = inet_csk(sk);
  
  	tcp_sk(sk)->prior_ssthresh = 0;
@@ -50,9 +57,11 @@ Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
  	if (icsk->icsk_ca_ops->init)
  		icsk->icsk_ca_ops->init(sk);
  	if (tcp_ca_needs_ecn(sk))
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 53f559e68cd3..4ae71702e166 100644
 --- a/net/ipv4/tcp_input.c
 +++ b/net/ipv4/tcp_input.c
-@@ -5505,13 +5505,14 @@ static void __tcp_ack_snd_check(struct s
+@@ -5569,13 +5569,14 @@ static void __tcp_ack_snd_check(struct sock *sk, int ofo_possible)
  
  	    /* More than one full frame received... */
  	if (((tp->rcv_nxt - tp->rcv_wup) > inet_csk(sk)->icsk_ack.rcv_mss &&
@@ -69,3 +78,6 @@ Change-Id: Iaa0a0fd7108221f883137a79d5bfa724f1b096d4
  	    /* We ACK each frame or... */
  	    tcp_in_quickack_mode(sk) ||
  	    /* Protocol state mandates a one-time immediate ACK */
+-- 
+2.39.2
+
