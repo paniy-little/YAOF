@@ -19,6 +19,7 @@ find "$BASE_DIR/scripts" -path "$BASE_DIR/staging_dir" -prune -o -type f -print0
 find "$BASE_DIR/feeds" -path "$BASE_DIR/staging_dir" -prune -o -type f -print0 | xargs -0 chmod 755
 
 # Setting executable permissions for init scripts in package, excluding staging_dir
+find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f -exec grep -l 'config' {} + -print0 | xargs -0 chmod 644
 find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f -exec grep -l 'bin' {} + -print0 | xargs -0 chmod 755
 find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f -exec grep -l 'PKG' {} + -print0 | xargs -0 chmod 755
 find "$BASE_DIR" -path "$BASE_DIR/staging_dir" -prune -o -type f -exec grep -l 'uci' {} + -print0 | xargs -0 chmod 755
