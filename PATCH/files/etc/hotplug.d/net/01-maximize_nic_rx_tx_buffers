@@ -10,26 +10,45 @@ command -v ethtool >/dev/null 2>&1 || exit 0
         mkdir -p /tmp/lock
         echo $$ > "$LOCK_FILE" 2>/dev/null
         trap 'rm -f "$LOCK_FILE"' EXIT
-        sleep 60
+        
+        CHANGES_MADE=0
+
         for NIC_PATH in /sys/class/net/*; do
             NIC=$(basename "$NIC_PATH")
+
             [ ! -d "/sys/class/net/$NIC/device" ] && continue
-            IF_TYPE=$(cat "/sys/class/net/$NIC/type" 2>/dev/null)
-            [ "$IF_TYPE" != "1" ] && continue
+            [ "$(cat "/sys/class/net/$NIC/type" 2>/dev/null)" != "1" ] && continue
 
             ETHTOOL_G_OUTPUT=$(ethtool -g "$NIC" 2>/dev/null)
             [ -z "$ETHTOOL_G_OUTPUT" ] && continue
-            RX_MAX=$(echo "$ETHTOOL_G_OUTPUT" | awk '/RX:/ {print $2; exit}')
-            TX_MAX=$(echo "$ETHTOOL_G_OUTPUT" | awk '/TX:/ {print $2; exit}')
-            [ -z "$RX_MAX" ] || ethtool -G "$NIC" rx "$RX_MAX"
-            [ -z "$TX_MAX" ] || ethtool -G "$NIC" tx "$TX_MAX"
+
+            RX_MAX=$(echo "$ETHTOOL_G_OUTPUT" | awk '/Pre-set maximums:/,0 {if (/RX:/ && !/Mini|Jumbo/) {print $2; exit}}')
+            TX_MAX=$(echo "$ETHTOOL_G_OUTPUT" | awk '/Pre-set maximums:/,0 {if (/TX:/) {print $2; exit}}')
+            
+            RX_CURRENT=$(echo "$ETHTOOL_G_OUTPUT" | awk '/Current hardware settings:/,0 {if (/RX:/ && !/Mini|Jumbo/) {print $2; exit}}')
+            TX_CURRENT=$(echo "$ETHTOOL_G_OUTPUT" | awk '/Current hardware settings:/,0 {if (/TX:/) {print $2; exit}}')
+
+            if [ -n "$RX_MAX" ] && [ "$RX_CURRENT" != "$RX_MAX" ]; then
+                ethtool -G "$NIC" rx "$RX_MAX" >/dev/null 2>&1 && CHANGES_MADE=1
+            fi
+            
+            if [ -n "$TX_MAX" ] && [ "$TX_CURRENT" != "$TX_MAX" ]; then
+                ethtool -G "$NIC" tx "$TX_MAX" >/dev/null 2>&1 && CHANGES_MADE=1
+            fi
 
             ETHTOOL_C_OUTPUT=$(ethtool -c "$NIC" 2>/dev/null)
             if echo "$ETHTOOL_C_OUTPUT" | grep -q "Adaptive RX:"; then
-                ethtool -C "$NIC" adaptive-rx on adaptive-tx on >/dev/null 2>&1
+                ADAPTIVE_RX_STATE=$(echo "$ETHTOOL_C_OUTPUT" | awk '/Adaptive RX:/ {print $3}')
+                ADAPTIVE_TX_STATE=$(echo "$ETHTOOL_C_OUTPUT" | awk '/Adaptive TX:/ {print $3}')
+
+                if [ "$ADAPTIVE_RX_STATE" != "on" ] || [ "$ADAPTIVE_TX_STATE" != "on" ]; then
+                    ethtool -C "$NIC" adaptive-rx on adaptive-tx on >/dev/null 2>&1 && CHANGES_MADE=1
+                fi
             fi
         done
 
-        logger -t net-buffer "NIC buffer sizes set and adaptive coalescing attempted"
+        if [ "$CHANGES_MADE" -eq 1 ]; then
+            logger -t net-buffer "NIC settings were updated to optimal values."
+        fi
     fi
 ) &
