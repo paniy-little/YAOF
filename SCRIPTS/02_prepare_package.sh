@@ -136,7 +136,7 @@ cp -rf ../PATCH/kernel/btf/* ./target/linux/generic/hack-6.6/
 # 更换为 ImmortalWrt Uboot 以及 Target
 rm -rf ./target/linux/rockchip
 cp -rf ../immortalwrt_24/target/linux/rockchip ./target/linux/rockchip
-rm -rf ./target/linux/rockchip/patches-6.6/712-phy-rockchip-naneng-combphy-add-sgmii-mac-sel.patch
+#rm -rf ./target/linux/rockchip/patches-6.6/712-phy-rockchip-naneng-combphy-add-sgmii-mac-sel.patch
 cp -rf ../PATCH/kernel/rockchip/* ./target/linux/rockchip/patches-6.6/
 #wget https://github.com/immortalwrt/immortalwrt/raw/refs/tags/v23.05.4/target/linux/rockchip/patches-5.15/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch -O target/linux/rockchip/patches-6.6/991-arm64-dts-rockchip-add-more-cpu-operating-points-for.patch
 rm -rf package/boot/{rkbin,uboot-rockchip,arm-trusted-firmware-rockchip}
@@ -216,14 +216,8 @@ patch -p1 <../PATCH/pkgs/odhcp6c/1002-odhcp6c-support-dhcpv6-hotplug.patch
 # ODHCPD
 rm -rf ./package/network/services/odhcpd
 cp -rf ../openwrt_ma/package/network/services/odhcpd ./package/network/services/odhcpd
-mkdir -p package/network/ipv6/odhcp6c/patches
-wget https://github.com/openwrt/odhcp6c/pull/75.patch -O package/network/ipv6/odhcp6c/patches/75.patch
-wget https://github.com/openwrt/odhcp6c/pull/80.patch -O package/network/ipv6/odhcp6c/patches/80.patch
-wget https://github.com/openwrt/odhcp6c/pull/82.patch -O package/network/ipv6/odhcp6c/patches/82.patch
-wget https://github.com/openwrt/odhcp6c/pull/83.patch -O package/network/ipv6/odhcp6c/patches/83.patch
-wget https://github.com/openwrt/odhcp6c/pull/84.patch -O package/network/ipv6/odhcp6c/patches/84.patch
-wget https://github.com/openwrt/odhcp6c/pull/90.patch -O package/network/ipv6/odhcp6c/patches/90.patch
-wget https://github.com/openwrt/odhcp6c/pull/98.patch -O package/network/ipv6/odhcp6c/patches/98.patch
+rm -rf ./package/network/ipv6/odhcp6c
+cp -rf ../openwrt_ma/package/network/ipv6/odhcp6c ./package/network/ipv6/odhcp6c
 # watchcat
 echo > ./feeds/packages/utils/watchcat/files/watchcat.config
 # 默认开启 Irqbalance
